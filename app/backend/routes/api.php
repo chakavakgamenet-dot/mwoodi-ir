@@ -7,18 +7,29 @@ use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\AdminController;
 
-Route::prefix('v1')->group(function () {
  Route::get('/health', function () {
   try { DB::select('select 1'); return response()->json(['ok'=>true,'service'=>'mwoodi-api','database'=>'ok','time'=>now()->toIso8601String()]); }
   catch (Throwable $e) { return response()->json(['ok'=>false,'service'=>'mwoodi-api','database'=>'error'],503); }
  });
  Route::post('/auth/register',[AuthController::class,'register']);
  Route::post('/auth/login',[AuthController::class,'login']);
- Route::post('/auth/admin-login',[AuthController::class,'adminLogin']);
+ Route::post('/auth/admin-login',[AuthController::class,'adminLogin'])->middleware('throttle:10,1');
+ Route::get('/auth/admin-status', function () {
+  $admin = DB::table('customers')->where('phone','admin')->first();
+  return response()->json([
+   'ok' => (bool)$admin,
+   'username' => 'admin',
+   'role' => $admin->role ?? null,
+   'is_active' => (bool)($admin->is_active ?? false),
+   'customer_no' => $admin->customer_no ?? null,
+   'password_hash_present' => !empty($admin->password_hash ?? null),
+  ]);
+ });
  Route::get('/settings', function(){ return DB::table('site_settings')->get()->mapWithKeys(function($row){ return [$row->key => json_decode($row->value, true)]; }); });
  Route::get('/products',[ProductController::class,'index']);
  Route::get('/products/{product:slug}',[ProductController::class,'show']);
  Route::post('/orders',[OrderController::class,'store']);
+ Route::get('/orders/guest-lookup',[OrderController::class,'guestLookup']);
  Route::middleware('auth:sanctum')->group(function(){
   Route::post('/auth/logout',[AuthController::class,'logout']);
   Route::get('/auth/me',[AuthController::class,'me']);
@@ -35,4 +46,3 @@ Route::prefix('v1')->group(function () {
    Route::patch('/products/{product:id}',[AdminController::class,'updateProduct']);
   });
  });
-});

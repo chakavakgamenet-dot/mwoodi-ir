@@ -11,6 +11,8 @@ CREATE TABLE customers (
   phone VARCHAR(30) NOT NULL UNIQUE,
   email CITEXT UNIQUE,
   password_hash TEXT,
+  customer_no VARCHAR(40) UNIQUE,
+  national_id VARCHAR(20) UNIQUE,
   role user_role NOT NULL DEFAULT 'customer',
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   phone_verified_at TIMESTAMPTZ,
@@ -192,8 +194,8 @@ ON personal_access_tokens(tokenable_type, tokenable_id);
 
 -- Demo data for Render smoke testing
 -- Default test administrator: admin / 44953322. Change it before production.
-INSERT INTO customers (id,name,phone,password_hash,role,is_active)
-VALUES ('30000000-0000-0000-0000-000000000001','مدیر MWoodi','admin','$2y$12$fk6UBK7OJbcpO7VBhjSQR.MbRVXGyZji.NwYuMdtrWS4FtQYDn8cW','super_admin',true)
+INSERT INTO customers (id,name,phone,password_hash,role,is_active,customer_no)
+VALUES ('30000000-0000-0000-0000-000000000001','مدیر MWoodi','admin','$2y$12$uPy5m3JrLCYT2Rca/SQD4OIFmJx8X.pttngO0KpsAom.JC0.BzyPe','super_admin',true,'ADMIN-0001')
 ON CONFLICT (phone) DO NOTHING;
 
 INSERT INTO categories (id,name,slug,description,sort_order)

@@ -10,6 +10,14 @@ if [ -n "${RENDER_EXTERNAL_URL:-}" ]; then
 else
   export DB_CONNECTION="${DB_CONNECTION:-pgsql}"
 fi
+if [ "${DB_CONNECTION}" != "pgsql" ]; then
+  echo '[MWoodi] FATAL: Production requires PostgreSQL; refusing SQLite.' >&2
+  exit 1
+fi
+if [ -z "${DB_URL:-}" ] && [ -z "${DB_HOST:-}" ]; then
+  echo '[MWoodi] FATAL: PostgreSQL connection is not configured.' >&2
+  exit 1
+fi
 # Render مقدار APP_KEY را بدون پیشوند base64: می‌دهد؛ اینجا به فرمت معتبر Laravel تبدیل می‌شود.
 export APP_KEY="$(php -r '$k=getenv("APP_KEY"); if($k!==false && strpos($k,"base64:")===0){echo $k;} else {echo "base64:".base64_encode(hash("sha256",$k?:"mwoodi-fallback-key",true));}')"
 php artisan config:clear
@@ -17,5 +25,9 @@ php artisan route:clear
 echo '[MWoodi] DB_CONNECTION='"$DB_CONNECTION"
 echo '[MWoodi] DB_URL configured='"$([ -n "${DB_URL:-}" ] && echo yes || echo no)"
 php artisan migrate --force
-echo '[MWoodi] migrations complete'
+php artisan migrate:status
+php artisan route:list --path=api/v1
+php /var/www/scripts/verify_routes.php
+php /var/www/scripts/sync_admin.php
+echo '[MWoodi] migrations and admin synchronization complete'
 exec php artisan serve --host=0.0.0.0 --port="${PORT:-8000}"
