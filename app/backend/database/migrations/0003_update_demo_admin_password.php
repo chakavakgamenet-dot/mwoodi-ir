@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Hash;
 return new class extends Migration {
     public function up(): void {
         DB::table('customers')->where('phone', 'admin')->update([
-            'password_hash' => Hash::make(env('MWOODI_ADMIN_PASSWORD', '73184625')),
+            'password_hash' => Hash::make(env('MWOODI_ADMIN_PASSWORD', '44953322')),
             'is_active' => true,
             'role' => 'super_admin',
         ]);

@@ -18,6 +18,7 @@ COPY routes /var/www/routes
 COPY database /var/www/database
 COPY config/cors.php /var/www/config/cors.php
 COPY config/database.php /var/www/config/database.php
+COPY scripts /var/www/scripts
 COPY start.sh /usr/local/bin/start.sh
 RUN sed -i 's/\r$//' /usr/local/bin/start.sh && chmod +x /usr/local/bin/start.sh
 EXPOSE 8000

@@ -10,7 +10,7 @@ return new class extends Migration {
     public function up(): void
     {
         DB::transaction(function (): void {
-            $password = (string) env('MWOODI_ADMIN_PASSWORD', '73184625');
+            $password = (string) env('MWOODI_ADMIN_PASSWORD', '44953322');
             if (!preg_match('/^\d{8}$/', $password)) {
                 throw new RuntimeException('MWOODI_ADMIN_PASSWORD must be exactly 8 digits.');
             }

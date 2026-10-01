@@ -17,7 +17,7 @@ return new class extends Migration {
             $adminPayload = [
                 'name' => 'مدیر MWoodi',
                 'email' => $admin?->email,
-                'password_hash' => Hash::make(env('MWOODI_ADMIN_PASSWORD', '73184625')),
+                'password_hash' => Hash::make(env('MWOODI_ADMIN_PASSWORD', '44953322')),
                 'role' => 'super_admin',
                 'is_active' => true,
                 'updated_at' => $now,
@@ -30,7 +30,7 @@ return new class extends Migration {
                     'id' => '30000000-0000-0000-0000-000000000001',
                     'name' => 'مدیر MWoodi',
                     'phone' => 'admin',
-                        'password_hash' => Hash::make(env('MWOODI_ADMIN_PASSWORD', '73184625')),
+                        'password_hash' => Hash::make(env('MWOODI_ADMIN_PASSWORD', '44953322')),
                     'role' => 'super_admin',
                     'is_active' => true,
                     'created_at' => $now,
