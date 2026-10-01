@@ -16,7 +16,6 @@ COPY app /var/www/app
 COPY bootstrap /var/www/bootstrap
 COPY routes /var/www/routes
 COPY database /var/www/database
-COPY scripts /var/www/scripts
 COPY config/cors.php /var/www/config/cors.php
 COPY config/database.php /var/www/config/database.php
 COPY start.sh /usr/local/bin/start.sh

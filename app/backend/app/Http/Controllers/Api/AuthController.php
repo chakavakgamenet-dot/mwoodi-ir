@@ -13,7 +13,7 @@ class AuthController extends Controller {
    'name'=>'required|string|max:160',
    'phone'=>'required|string|max:30|unique:customers,phone',
    'national_id'=>'nullable|string|max:20|unique:customers,national_id',
-   'password'=>'required|string|min:8|max:200',
+   'password'=>'required|string|min:8',
   ]);
   $nationalId=trim((string)($data['national_id'] ?? '')) ?: null;
   $customerNo='CUS-'.str_pad((string)(Customer::where('role','customer')->count()+1),4,'0',STR_PAD_LEFT);
@@ -28,7 +28,7 @@ class AuthController extends Controller {
   return response()->json(['customer'=>$c,'token'=>$token],201);
  }
  public function login(Request $r){
-  $data=$r->validate(['identifier'=>'required|string|max:160','password'=>'required|string|max:200']);
+  $data=$r->validate(['identifier'=>'required|string','password'=>'required|string']);
   $identifier=trim($data['identifier']);
   $c=Customer::where(function($q) use($identifier){
       $q->where('phone',$identifier)->orWhere('national_id',$identifier)->orWhere('customer_no',$identifier);
@@ -38,14 +38,8 @@ class AuthController extends Controller {
   return ['customer'=>$c,'token'=>$token];
  }
  public function adminLogin(Request $r){
-  $data=$r->validate([
-   'username'=>'required|string|max:160',
-   'password'=>'required|digits:8',
-  ]);
+  $data=$r->validate(['username'=>'required|string|max:160','password'=>'required|digits:8']);
   $username = trim((string)$data['username']);
-  if ($username === '') {
-   throw ValidationException::withMessages(['username'=>'نام کاربری الزامی است.']);
-  }
   $c=Customer::where(function($q) use ($username){
       $q->where('phone',$username)->orWhere('email',$username)->orWhere('customer_no',$username);
     })->whereIn('role',['seller','manager','super_admin'])->where('is_active',true)->first();

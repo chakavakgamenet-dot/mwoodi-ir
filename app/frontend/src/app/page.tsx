@@ -20,11 +20,19 @@ const photos=[
 ];
 const money=(n:number)=>Number(n).toLocaleString('fa-IR')+' تومان';
 
+function AuthBadge(){
+ const [auth,setAuth]=useState<any>(null),[guest,setGuest]=useState(false);
+ useEffect(()=>{const read=()=>{try{setAuth(JSON.parse(localStorage.getItem('mwoodi_auth')||'null'))}catch{setAuth(null)};setGuest(localStorage.getItem('mwoodi_guest')==='1')};read();window.addEventListener('mwoodi-auth-changed',read);return()=>window.removeEventListener('mwoodi-auth-changed',read)},[]);
+ if(auth)return <><Link href={['seller','manager','super_admin'].includes(auth.role)?'/admin':'/account'}>{auth.role==='customer'?'👤 '+(auth.name||'حساب من'):'⚙️ مدیریت'}</Link><button className="headerLogout" onClick={async()=>{try{await api('/auth/logout',{method:'POST'})}catch{}localStorage.removeItem('mwoodi_token');localStorage.removeItem('mwoodi_auth');localStorage.setItem('mwoodi_guest','1');window.dispatchEvent(new Event('mwoodi-auth-changed'));location.href='/'}}>خروج</button></>;
+ return <>{guest&&<span className="guestBadge">مهمان</span>}<Link href="/login">ورود</Link><Link href="/login?register=1">ثبت‌نام</Link></>;
+}
+
+
 export default function Home(){
  const [products,setProducts]=useState<any[]>(fallback),[loading,setLoading]=useState(true),[q,setQ]=useState('');
  useEffect(()=>{
-   api<any>('/products').then(d=>{
-     const live=(d.data||[]).map((p:any)=>({...p,cat:p.category?.name||'محصول چوبی'}));
+   api<any[]>('/products?all=1').then(d=>{
+     const live=d.map((p:any)=>({...p,cat:p.category?.name||'محصول چوبی'}));
      if(live.length)setProducts(live);
    }).finally(()=>setLoading(false));
  },[]);
@@ -33,7 +41,7 @@ export default function Home(){
    <header className="storeHeader">
     <Link href="/" className="logo"><span className="mark">♨</span><span><b>Mwoodi</b><small>WOODEN ART FOR YOUR HOME</small></span></Link>
     <nav><Link href="/">خانه</Link><Link href="/products">فروشگاه</Link><a href="#cats">دسته‌بندی‌ها</a><a href="#about">درباره ما</a></nav>
-    <div className="headActions"><span className="guestBadge">مهمان</span><input value={q} onChange={e=>setQ(e.target.value)} placeholder="جستجوی محصول..." /><Link href="/cart">🛒 سبد</Link><Link href="/login">ورود</Link><Link href="/login?register=1">ثبت‌نام</Link></div>
+    <div className="headActions"><AuthBadge/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="جستجوی محصول..." /><Link href="/cart">🛒 سبد</Link><Link href="/login">ورود</Link><Link href="/login?register=1">ثبت‌نام</Link></div>
    </header>
 
    <section className="hero">

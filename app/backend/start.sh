@@ -26,8 +26,5 @@ echo '[MWoodi] DB_CONNECTION='"$DB_CONNECTION"
 echo '[MWoodi] DB_URL configured='"$([ -n "${DB_URL:-}" ] && echo yes || echo no)"
 php artisan migrate --force
 php artisan migrate:status
-php artisan route:list --path=api/v1
-php /var/www/scripts/verify_routes.php
-php /var/www/scripts/sync_admin.php
-echo '[MWoodi] migrations and admin synchronization complete'
+echo '[MWoodi] migrations complete'
 exec php artisan serve --host=0.0.0.0 --port="${PORT:-8000}"

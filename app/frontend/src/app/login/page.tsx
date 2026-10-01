@@ -29,9 +29,12 @@ export default function Login(){
   setBusy(true);setError('');
   try{
    if(!admin && register && password!==password2) throw new Error('تکرار رمز عبور با رمز اصلی یکسان نیست.');
-   if(!admin && register && password.length<4) throw new Error('رمز عبور باید حداقل ۴ کاراکتر باشد.');
+   if(!admin && register && password.length<8) throw new Error('رمز عبور باید حداقل ۸ کاراکتر باشد.');
    const data:any=await apiNetworkSafe(admin?'/auth/admin-login':register?'/auth/register':'/auth/login',{method:'POST',body:JSON.stringify(admin?{username:username.trim(),password}:register?{name:name.trim(),phone:phone.trim(),national_id:nationalId.replace(/\D/g,''),password}:{identifier:phone.trim(),password})});
    saveToken(data.token);
+   localStorage.removeItem('mwoodi_guest');
+   localStorage.setItem('mwoodi_auth',JSON.stringify({...data.customer,role:admin?(data.customer?.role||'super_admin'):'customer'}));
+   window.dispatchEvent(new Event('mwoodi-auth-changed'));
    if(!admin) await mergeGuestCart();
    router.push(admin?'/admin':'/account');
   }catch(e:any){setError(e.message||'ورود/ثبت‌نام انجام نشد. اطلاعات را بررسی کنید.');}
@@ -41,11 +44,11 @@ export default function Login(){
   <span className="eyebrow dark">{admin?'MWOODI ADMIN':'MWOODI ACCOUNT'}</span><h1>{admin?'ورود مدیر':register?'ساخت حساب':'ورود به حساب'}</h1>
   {admin?<input value={username} onChange={e=>setUsername(e.target.value)} placeholder="نام کاربری یا ایمیل" dir="ltr"/>:register&&<><input value={name} onChange={e=>setName(e.target.value)} placeholder="نام و نام خانوادگی"/><input value={nationalId} onChange={e=>setNationalId(e.target.value)} placeholder="کد ملی (اختیاری)" dir="ltr" inputMode="numeric"/></>}
   {!admin&&<input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="شماره موبایل" dir="ltr"/>}
-  <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="رمز عبور (حداقل ۴ کاراکتر)" type="password" dir="ltr"/>{!admin&&register&&<input value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="تکرار رمز عبور" type="password" dir="ltr"/>}
+  <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="رمز عبور (حداقل ۸ کاراکتر)" type="password" dir="ltr"/>{!admin&&register&&<input value={password2} onChange={e=>setPassword2(e.target.value)} placeholder="تکرار رمز عبور" type="password" dir="ltr"/>}
   {error&&<div className="error">{error}</div>}
   <button className="btn primary" disabled={busy} onClick={submit}>{busy?'در حال بررسی…':admin?'ورود به پنل':register?'ثبت‌نام':'ورود'}</button>
   {!admin&&<button className="textBtn" onClick={()=>{setRegister(!register);setError('')}}>{register?'حساب دارم؛ ورود':'حساب ندارم؛ ثبت‌نام'}</button>}
-  {admin&&<small>حساب مدیر: <b>admin</b> / <b>44953322</b></small>}
+  {admin&&<small>رمز مدیر ۸ رقمی است و از سمت سرور بررسی می‌شود.</small>}
   {!admin&&<><button className="textBtn" onClick={()=>{localStorage.setItem('mwoodi_guest','1');router.push('/products')}}>ادامه به‌عنوان میهمان</button><Link href="/login?admin=1" className="textBtn">ورود مدیر</Link></>}
  </div></section>
 }

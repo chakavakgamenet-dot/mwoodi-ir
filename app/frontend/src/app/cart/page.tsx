@@ -1,39 +1,19 @@
 'use client';
-import {useEffect,useState} from 'react';
+import {useEffect,useMemo,useState} from 'react';
 import Link from 'next/link';
 import {api} from '../../lib/api';
-
 export default function Cart(){
  const [items,setItems]=useState<any[]>([]),[auth,setAuth]=useState(false),[loading,setLoading]=useState(true),[checkout,setCheckout]=useState(false),[busy,setBusy]=useState(false),[notice,setNotice]=useState('');
  const [address,setAddress]=useState({recipient_name:'',recipient_phone:'',province:'',city:'',address:'',postal_code:''});
- useEffect(()=>{
-  const t=localStorage.getItem('mwoodi_token'); setAuth(!!t);
-  if(t) api<any>('/cart').then(c=>setItems(c.items||[])).catch(e=>setNotice(e.message||'دریافت سبد خرید انجام نشد.')).finally(()=>setLoading(false));
-  else {try{setItems(JSON.parse(localStorage.getItem('mwoodi_guest_cart')||'[]'))}catch{setItems([])}setLoading(false)}
- },[]);
- const total=items.reduce((s,x)=>s+Number(x.product?.price??x.price)*x.quantity,0);
- async function placeOrder(){
-  if(!address.recipient_name||!address.recipient_phone||!address.province||!address.city||!address.address){setNotice('لطفاً اطلاعات ارسال را کامل کنید.');return}
-  setBusy(true);setNotice('');
-  try{
-   const payload:any={shipping_address:address,shipping_method:'ارسال عادی'};
-   if(!auth){
-    payload.guest_name=address.recipient_name;
-    payload.guest_phone=address.recipient_phone;
-    payload.items=items.map(x=>({product_id:x.product_id||x.product?.id,quantity:Number(x.quantity)}));
-   }
-   const order:any=await api('/orders',{method:'POST',body:JSON.stringify(payload)});
-   setItems([]);setCheckout(false);
-   if(!auth) localStorage.removeItem('mwoodi_guest_cart');
-   setNotice(`سفارش ${order.order_number} با موفقیت ثبت شد.`);
-  }catch(e:any){setNotice(e.message||'ثبت سفارش انجام نشد.')}finally{setBusy(false)}
- }
- return <section className="section page"><span className="eyebrow dark">CART</span><div className="sectionTitle"><h1>سبد خرید</h1><span>{auth?'مشتری واردشده':'خرید به‌عنوان میهمان'}</span></div>
- {notice&&<div className="notice">{notice}</div>}
- {loading?<div className="empty">در حال بارگذاری…</div>:!items.length?<div className="empty"><div>🛒</div><h2>سبد خرید شما خالی است</h2><Link href="/products" className="btn primary">مشاهده محصولات</Link></div>:
- <><div className="cartList">{items.map(x=><div className="dashboard" key={x.id||x.product_id}><div><b>{x.product?.name||x.name}</b><span>تعداد: {x.quantity}</span></div><strong>{(Number(x.product?.price??x.price)*x.quantity).toLocaleString('fa-IR')} تومان</strong></div>)}</div>
- <div className="sectionTitle"><strong>جمع: {total.toLocaleString('fa-IR')} تومان</strong><button className="btn primary" onClick={()=>setCheckout(!checkout)}>{checkout?'بستن فرم':'ادامه و ثبت سفارش'}</button></div>
- {checkout&&<div className="authBox" style={{marginTop:20,maxWidth:'none'}}><h2>اطلاعات ارسال</h2><div className="filters"><input placeholder="نام گیرنده" value={address.recipient_name} onChange={e=>setAddress({...address,recipient_name:e.target.value})}/><input placeholder="شماره تماس" dir="ltr" value={address.recipient_phone} onChange={e=>setAddress({...address,recipient_phone:e.target.value})}/></div><div className="filters"><input placeholder="استان" value={address.province} onChange={e=>setAddress({...address,province:e.target.value})}/><input placeholder="شهر" value={address.city} onChange={e=>setAddress({...address,city:e.target.value})}/><input placeholder="کد پستی" dir="ltr" value={address.postal_code} onChange={e=>setAddress({...address,postal_code:e.target.value})}/></div><textarea placeholder="آدرس کامل" value={address.address} onChange={e=>setAddress({...address,address:e.target.value})} style={{minHeight:100,border:'1px solid #ddcfbf',borderRadius:10,padding:12}}/><button className="btn primary" disabled={busy} onClick={placeOrder}>{busy?'در حال ثبت…':'ثبت سفارش'}</button><small>برای تست، ثبت سفارش بدون اتصال درگاه انجام می‌شود و در پنل مدیر قابل مشاهده است.</small></div>}
- </>}
- </section>
+ async function load(){const t=localStorage.getItem('mwoodi_token');setAuth(!!t);if(t){try{const c=await api<any>('/cart');setItems(c.items||[])}catch(e:any){setNotice(e.message||'دریافت سبد خرید انجام نشد.')}}else{try{setItems(JSON.parse(localStorage.getItem('mwoodi_guest_cart')||'[]'))}catch{setItems([])}}setLoading(false)}
+ useEffect(()=>{load();const fn=()=>load();window.addEventListener('mwoodi-cart-changed',fn);return()=>window.removeEventListener('mwoodi-cart-changed',fn)},[]);
+ const total=useMemo(()=>items.reduce((s,x)=>s+Number(x.product?.price??x.price)*Number(x.quantity),0),[items]);
+ async function change(item:any,delta:number){const qty=Math.max(0,Number(item.quantity)+delta);try{if(auth){if(qty===0)await api('/cart/items/'+(item.product?.id||item.product_id),{method:'DELETE'});else await api('/cart/items/'+(item.product?.id||item.product_id),{method:'PATCH',body:JSON.stringify({quantity:qty})});}else{const cart=items.map(x=>x.product_id===item.product_id?{...x,quantity:qty}:x).filter(x=>x.quantity>0);localStorage.setItem('mwoodi_guest_cart',JSON.stringify(cart));}await load()}catch(e:any){setNotice(e.message||'تغییر سبد انجام نشد.')}}
+ async function placeOrder(){if(!items.length){setNotice('سبد خرید خالی است.');return}if(!address.recipient_name||!address.recipient_phone||!address.province||!address.city||!address.address){setNotice('لطفاً اطلاعات ارسال را کامل کنید.');return}setBusy(true);setNotice('');try{const payload:any={shipping_address:address,shipping_method:'ارسال عادی'};if(!auth){payload.guest_name=address.recipient_name;payload.guest_phone=address.recipient_phone;payload.items=items.map(x=>({product_id:x.product_id||x.product?.id,quantity:Number(x.quantity)}))}const order:any=await api('/orders',{method:'POST',body:JSON.stringify(payload)});setItems([]);setCheckout(false);if(!auth)localStorage.removeItem('mwoodi_guest_cart');setNotice(`سفارش ${order.order_number} با موفقیت نهایی شد. وضعیت پرداخت: پرداخت نشده`);window.dispatchEvent(new Event('mwoodi-cart-changed'));}catch(e:any){setNotice(e.message||'ثبت نهایی سفارش انجام نشد.')}finally{setBusy(false)}}
+ return <section className="section page"><span className="eyebrow dark">CART • CHECKOUT</span><div className="sectionTitle"><div><h1>سبد خرید و خرید نهایی</h1><span>{auth?'مشتری واردشده':'خرید به‌عنوان میهمان'}</span></div><Link href="/products" className="btn">بازگشت به فروشگاه</Link></div>
+ {notice&&<div className="notice">{notice}</div>}{loading?<div className="empty">در حال بارگذاری…</div>:!items.length?<div className="empty"><div>🛒</div><h2>سبد خرید شما خالی است</h2><Link href="/products" className="btn primary">مشاهده همه محصولات</Link></div>:<>
+ <div className="cartList">{items.map(x=>{const p=x.product||x;const id=x.product_id||p.id;return <div className="dashboard" key={x.id||id}><div><b>{p.name}</b><span>{Number(p.price).toLocaleString('fa-IR')} تومان · تعداد {x.quantity}</span></div><div className="detailActions"><button className="btn small" onClick={()=>change(x,-1)}>−</button><b>{x.quantity}</b><button className="btn small" onClick={()=>change(x,1)}>+</button><strong>{(Number(p.price)*Number(x.quantity)).toLocaleString('fa-IR')} تومان</strong></div></div>})}</div>
+ <div className="sectionTitle"><strong>جمع نهایی: {total.toLocaleString('fa-IR')} تومان</strong><button className="btn primary" onClick={()=>setCheckout(!checkout)}>{checkout?'بستن فرم':'ادامه و ثبت سفارش'}</button></div>
+ {checkout&&<div className="authBox" style={{marginTop:20,maxWidth:'none'}}><h2>اطلاعات ارسال</h2><div className="filters"><input placeholder="نام گیرنده" value={address.recipient_name} onChange={e=>setAddress({...address,recipient_name:e.target.value})}/><input placeholder="شماره تماس" value={address.recipient_phone} onChange={e=>setAddress({...address,recipient_phone:e.target.value})}/></div><div className="filters"><input placeholder="استان" value={address.province} onChange={e=>setAddress({...address,province:e.target.value})}/><input placeholder="شهر" value={address.city} onChange={e=>setAddress({...address,city:e.target.value})}/><input placeholder="کد پستی" value={address.postal_code} onChange={e=>setAddress({...address,postal_code:e.target.value})}/></div><textarea placeholder="آدرس کامل" value={address.address} onChange={e=>setAddress({...address,address:e.target.value})} style={{minHeight:100,border:'1px solid #ddcfbf',borderRadius:10,padding:12}}/><button className="btn primary" disabled={busy} onClick={placeOrder}>{busy?'در حال ثبت نهایی…':'تأیید و ثبت نهایی سفارش'}</button><small>سفارش در دیتابیس ثبت و موجودی رزرو می‌شود؛ پرداخت درگاه در این نسخه هنوز به سرویس بانکی متصل نشده است.</small></div>}
+ </>}</section>
 }

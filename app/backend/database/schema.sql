@@ -193,9 +193,9 @@ CREATE INDEX IF NOT EXISTS personal_access_tokens_tokenable_index
 ON personal_access_tokens(tokenable_type, tokenable_id);
 
 -- Demo data for Render smoke testing
--- Default test administrator: admin / 44953322. Change it before production.
+-- Default test administrator: admin / 73184625. Change it before production.
 INSERT INTO customers (id,name,phone,password_hash,role,is_active,customer_no)
-VALUES ('30000000-0000-0000-0000-000000000001','مدیر MWoodi','admin','$2y$12$uPy5m3JrLCYT2Rca/SQD4OIFmJx8X.pttngO0KpsAom.JC0.BzyPe','super_admin',true,'ADMIN-0001')
+VALUES ('30000000-0000-0000-0000-000000000001','مدیر MWoodi','admin','$2y$12$D/tkJEafu3mSTNBzxt6AJeNp8iB1Hle/HXjCFK.BjvPRLKDHHdbXC','super_admin',true,'ADMIN-0001')
 ON CONFLICT (phone) DO NOTHING;
 
 INSERT INTO categories (id,name,slug,description,sort_order)

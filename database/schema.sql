@@ -11,6 +11,8 @@ CREATE TABLE customers (
   phone VARCHAR(30) NOT NULL UNIQUE,
   email CITEXT UNIQUE,
   password_hash TEXT,
+  customer_no VARCHAR(40) UNIQUE,
+  national_id VARCHAR(20) UNIQUE,
   role user_role NOT NULL DEFAULT 'customer',
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   phone_verified_at TIMESTAMPTZ,

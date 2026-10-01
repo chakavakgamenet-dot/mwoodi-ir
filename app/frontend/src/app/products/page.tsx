@@ -12,20 +12,13 @@ const fallback=[
  {id:'21000000-0000-0000-0000-000000000006',name:'سینی پذیرایی مستطیل',slug:'rectangular-serving-tray',price:2100000,category:{name:'پذیرایی'}}
 ];
 export default function Products(){
- const [items,setItems]=useState<any[]>([]),[q,setQ]=useState(''),[loading,setLoading]=useState(true),[notice,setNotice]=useState('');
- useEffect(()=>{api<any>('/products').then(d=>{const live=d.data||[];setItems(live.length?live:fallback)}).catch(()=>{setItems(fallback);setNotice('نمایش محصولات از فهرست فروشگاه انجام شد؛ برای ثبت سفارش باید ارتباط سرور برقرار باشد.')}).finally(()=>setLoading(false))},[]);
+ const [items,setItems]=useState<any[]>([]),[q,setQ]=useState(''),[category,setCategory]=useState(''),[loading,setLoading]=useState(true),[notice,setNotice]=useState('');
+ useEffect(()=>{api<any[]>('/products?all=1').then(d=>{setItems(d.length?d:fallback)}).catch(()=>{setItems(fallback);setNotice('اتصال فروشگاه برقرار نیست؛ فهرست نمونه فقط برای نمایش فعال است.')}).finally(()=>setLoading(false))},[]);
  async function add(p:any){
-  try{
-   const token=localStorage.getItem('mwoodi_token');
-   if(token) await api('/cart/items',{method:'POST',body:JSON.stringify({product_id:p.id,quantity:1})});
-   else {const cart=JSON.parse(localStorage.getItem('mwoodi_guest_cart')||'[]');const x=cart.find((x:any)=>x.product_id===p.id);if(x)x.quantity++;else cart.push({product_id:p.id,name:p.name,price:p.price,quantity:1});localStorage.setItem('mwoodi_guest_cart',JSON.stringify(cart));}
-   setNotice(`«${p.name}» به سبد خرید اضافه شد.`);
-  }catch(e:any){setNotice(e.message||'افزودن به سبد انجام نشد.')}
- }
- const filtered=items.filter(p=>!q||p.name.includes(q));
- return <section className="section page"><div className="sectionTitle"><div><span className="eyebrow dark">SHOP • مهمان هم می‌تواند خرید کند</span><h1>محصولات MWoodi</h1></div><div className="detailActions"><Link href="/login?guest=1" className="btn">ادامه به‌عنوان میهمان</Link><Link href="/cart" className="btn primary">سبد خرید</Link></div></div>
- <div className="filters"><input placeholder="جستجوی محصول..." value={q} onChange={e=>setQ(e.target.value)}/></div>
- {notice&&<div className="notice">{notice}</div>}
- {loading?<div className="empty">در حال بارگذاری محصولات…</div>:!filtered.length?<div className="empty">محصولی برای نمایش وجود ندارد.</div>:<div className="products">{filtered.map(p=><article className="product" key={p.id}><div className="productImage">🪵</div><span className="muted">{p.category?.name||'محصول چوبی'}</span><h3>{p.name}</h3><strong>{money(p.price)}</strong><div className="detailActions"><Link href={'/products/'+p.slug} className="btn small">مشاهده</Link><button className="btn primary small" onClick={()=>add(p)}>افزودن به سبد</button></div></article>)}</div>}
+  try{const token=localStorage.getItem('mwoodi_token');if(token) await api('/cart/items',{method:'POST',body:JSON.stringify({product_id:p.id,quantity:1})});else{const cart=JSON.parse(localStorage.getItem('mwoodi_guest_cart')||'[]');const x=cart.find((x:any)=>x.product_id===p.id);if(x)x.quantity++;else cart.push({product_id:p.id,name:p.name,price:p.price,quantity:1});localStorage.setItem('mwoodi_guest_cart',JSON.stringify(cart));}window.dispatchEvent(new Event('mwoodi-cart-changed'));setNotice(`«${p.name}» به سبد خرید اضافه شد.`)}catch(e:any){setNotice(e.message||'افزودن به سبد انجام نشد.')}}
+ const filtered=items.filter(p=>(!q||p.name.includes(q))&&(!category||p.category?.slug===category));
+ return <section className="section page"><div className="sectionTitle"><div><span className="eyebrow dark">SHOP • فروشگاه کامل</span><h1>تمام محصولات MWoodi</h1><p>فهرست مستقیم از دیتابیس فروشگاه، بدون محدود شدن به شش محصول نمایشی.</p></div><div className="detailActions"><Link href="/cart" className="btn primary">سبد خرید</Link></div></div>
+  <div className="filters"><input placeholder="جستجوی محصول..." value={q} onChange={e=>setQ(e.target.value)}/><select value={category} onChange={e=>setCategory(e.target.value)}><option value="">همه دسته‌ها</option><option value="kitchen">آشپزخانه</option><option value="reception">پذیرایی</option><option value="decor">دکوراسیون</option><option value="accessories">اکسسوری</option></select></div>
+  {notice&&<div className="notice">{notice}</div>}{loading?<div className="empty">در حال بارگذاری تمام محصولات…</div>:!filtered.length?<div className="empty">محصولی برای نمایش وجود ندارد.</div>:<div className="products">{filtered.map(p=><article className="product" key={p.id}><div className="productImage">{p.images?.[0]?.url?<img src={p.images[0].url} alt={p.images[0].alt_text||p.name}/>:<span>🪵</span>}</div><span className="muted">{p.category?.name||'محصول چوبی'}{p.inventory?' · موجودی '+p.inventory.quantity:''}</span><h3>{p.name}</h3><strong>{money(p.price)}</strong><div className="detailActions"><Link href={'/products/'+p.slug} className="btn small">مشاهده</Link><button className="btn primary small" disabled={Number(p.inventory?.quantity??1)<=0} onClick={()=>add(p)}>{Number(p.inventory?.quantity??1)<=0?'ناموجود':'افزودن به سبد'}</button></div></article>)}</div>}
  </section>
 }

@@ -10,7 +10,7 @@ return new class extends Migration {
             "INSERT INTO customers (id,name,phone,password_hash,role,is_active)
              VALUES (?,?,?,?,?::user_role,true)
              ON CONFLICT (phone) DO NOTHING",
-            ['30000000-0000-0000-0000-000000000001', 'مدیر MWoodi', 'admin', Hash::make(env('MWOODI_ADMIN_PASSWORD', '44953322')), 'super_admin']
+            ['30000000-0000-0000-0000-000000000001', 'مدیر MWoodi', 'admin', Hash::make(env('MWOODI_ADMIN_PASSWORD', '73184625')), 'super_admin']
         );
 
         DB::statement("INSERT INTO categories (id,name,slug,description,sort_order) VALUES
