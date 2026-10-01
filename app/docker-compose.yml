@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: mwoodi
+      POSTGRES_USER: mwoodi
+      POSTGRES_PASSWORD: change-me
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+  backend:
+    build: ./backend
+    ports: ["8000:8000"]
+    environment:
+      APP_KEY: base64:MWoodiLocalDevelopmentKeyReplaceMe=
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: mwoodi
+      DB_USERNAME: mwoodi
+      DB_PASSWORD: change-me
+      REDIS_HOST: redis
+      FRONTEND_URL: http://localhost:3000
+    depends_on: [postgres, redis]
+  frontend:
+    build: ./frontend
+    ports: ["3000:3000"]
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    depends_on: [backend]
+volumes:
+  pgdata:
