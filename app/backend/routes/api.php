@@ -9,8 +9,22 @@ use App\Http\Controllers\Api\AdminController;
 
 Route::prefix('v1')->group(function () {
  Route::get('/health', function () {
-  try { DB::select('select 1'); return response()->json(['ok'=>true,'service'=>'mwoodi-api','database'=>'ok','time'=>now()->toIso8601String()]); }
-  catch (Throwable $e) { return response()->json(['ok'=>false,'service'=>'mwoodi-api','database'=>'error'],503); }
+  try {
+   $driver = DB::connection()->getDriverName();
+   $customers = DB::getSchemaBuilder()->hasTable('customers');
+   DB::select('select 1');
+   $ok = $driver === 'pgsql' && $customers;
+   return response()->json([
+    'ok'=>$ok,
+    'service'=>'mwoodi-api',
+    'database'=>$ok ? 'ok' : 'invalid',
+    'driver'=>$driver,
+    'customers_table'=>$customers,
+    'time'=>now()->toIso8601String(),
+   ], $ok ? 200 : 503);
+  } catch (Throwable $e) {
+   return response()->json(['ok'=>false,'service'=>'mwoodi-api','database'=>'error','driver'=>DB::connection()->getDriverName()],503);
+  }
  });
  Route::post('/auth/register',[AuthController::class,'register']);
  Route::post('/auth/login',[AuthController::class,'login']);

@@ -35,3 +35,8 @@
 
 ## محدودیت
 Render Free برای تست مناسب است. این بسته برای محیط production واقعی، درگاه بانکی واقعی را فعال نکرده و داده عملیاتی حساس نباید روی سرویس رایگان نگهداری شود.
+
+
+### تشخیص خطای SQLite
+
+اگر پاسخ Login هنوز متن `Connection: sqlite, Database: /var/www/database/database.sqlite` را نشان می‌دهد، درخواست به یک Deployment قدیمی/سرویس API دیگر رسیده است. در نسخه نهایی این repository، `start.sh` اجازه اجرای production با SQLite را نمی‌دهد. ابتدا Deploy API را از همین commit انجام دهید، سپس `/api/v1/health` را بررسی کنید.

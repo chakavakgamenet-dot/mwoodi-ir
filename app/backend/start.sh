@@ -3,12 +3,12 @@ set -eu
 
 # IMPORTANT: Render's generated Laravel environment can contain DB_CONNECTION=sqlite.
 # The managed Render PostgreSQL URL is authoritative. Never allow production to boot on SQLite.
-if [ -n "${DB_URL:-}" ]; then
+if [ -n "${DB_URL:-}" ] || [ -n "${DATABASE_URL:-}" ]; then
   export DB_CONNECTION=pgsql
 elif [ -n "${DB_HOST:-}" ] || [ -n "${RENDER_EXTERNAL_URL:-}" ]; then
   export DB_CONNECTION=pgsql
 else
-  echo '[MWoodi] FATAL: Render PostgreSQL connection is not configured (DB_URL/DB_HOST missing).' >&2
+  echo '[MWoodi] FATAL: Render PostgreSQL connection is not configured (DB_URL/DATABASE_URL/DB_HOST missing).' >&2
   exit 1
 fi
 

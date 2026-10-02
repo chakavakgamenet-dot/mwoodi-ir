@@ -107,3 +107,12 @@ SQLite برای production Render عمداً غیرفعال است. اگر Larav
 
 ## فایل مرجع v37
 `app/frontend/src/legacy-v37-reference.html` نسخه مرجع v37 است. کد آن برای مقایسه و حفظ محتوا در بسته باقی مانده، اما مسیر اجرایی جدید از API واحد استفاده می‌کند.
+
+
+### نکته مهم برای Render
+
+اگر در سایت خطایی مثل `no such table: customers` با `Connection: sqlite` دیدید، آن نسخه‌ای که سرو می‌شود نسخه نهایی این پروژه نیست یا سرویس API به دیتابیس PostgreSQL متصل نشده است. نسخه فعلی قبل از سرویس‌دهی، در `start.sh` و `verify_runtime.php` درایور PostgreSQL و وجود جدول `customers` را کنترل می‌کند و در صورت خطا متوقف می‌شود. Blueprint نیز `DATABASE_URL` را از Render Postgres می‌گیرد.
+
+بعد از اتصال Repository به Render، حتماً Deploy جدید انجام دهید و در سرویس API مسیر `/api/v1/health` را بررسی کنید. پاسخ سالم باید شامل `"ok":true`، `"driver":"pgsql"` و `"customers_table":true` باشد.
+
+`MWOODI_ADMIN_PASSWORD` عمداً در Blueprint به صورت `sync: false` است؛ هنگام ساخت Blueprint مقدار رمز ۸ رقمی دلخواه خودتان را وارد کنید.
