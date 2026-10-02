@@ -1,28 +1,37 @@
-# تست استقرار MWoodi روی Render
+# تست Render نسخه نهایی MWoodi
 
-این بسته برای یک محیط تست رایگان Render آماده شده است.
+## 1. GitHub
+کل محتوای این بسته را در root repository قرار دهید و push کنید.
 
-## ساختار
-- `app/backend`: Laravel API + Docker
-- `app/frontend`: Next.js
-- `mwoodi-build/database/schema.sql`: مرجع دیتابیس
-- `render.yaml`: Blueprint برای API، Frontend و PostgreSQL
+## 2. Render
+در Render:
+`New -> Blueprint`
 
-## راه‌اندازی
-1. کل مخزن را در GitHub قرار دهید.
-2. در Render از New -> Blueprint فایل `render.yaml` را انتخاب کنید.
-3. سه سرویس ساخته می‌شوند: `mwoodi-api`، `mwoodi-web` و `mwoodi-db`.
-4. اگر نام سرویس `mwoodi-api` به‌دلیل اشغال بودن تغییر کرد، متغیرهای API در `render.yaml` از URL سرویس API گرفته می‌شوند و فرانت‌اند از Proxy داخلی Next.js نیز استفاده می‌کند.
-5. سلامت API: `/api/v1/health`
-6. صفحه فروشگاه: URL سرویس `mwoodi-web`
+فایل `render.yaml` را انتخاب کنید.
 
-## تست سریع
-- ثبت‌نام: `/login`
-- ورود: `/login`
-- حساب: `/account`
-- محصولات: `/products`
-- جزئیات محصول: `/products/<slug>`
-- سبد مشتری واردشده: `/cart`
+## 3. منابع
+- `mwoodi-api`: Laravel 12 + PHP 8.4
+- `mwoodi-web`: Next.js 15
+- `mwoodi-db`: PostgreSQL
 
-### توجه
-Render Free برای تست مناسب است. Web Service رایگان پس از 15 دقیقه بی‌استفاده شدن متوقف می‌شود و با درخواست بعدی دوباره بالا می‌آید. PostgreSQL رایگان فعلی Render برای شروع رایگان است اما طبق مستندات Render پس از 30 روز منقضی می‌شود؛ برای داده واقعی/تولیدی مناسب نیست.
+## 4. مدیر
+بعد از deploy:
+- Username: `admin`
+- Password: مقدار `MWOODI_ADMIN_PASSWORD`
+
+مقدار فعلی تستی در Blueprint `44953322` است. برای استفاده واقعی آن را در Environment Variables به رمز خصوصی خودتان تغییر دهید.
+
+## 5. Smoke test
+1. `/api/v1/health` باید `ok=true` و `database=ok` برگرداند.
+2. `/login?admin=1` باز شود.
+3. ورود مدیر انجام شود و `/admin` نمایش داده شود.
+4. در پنل، تب «مشتریان» و «تنظیمات سایت» قابل باز شدن باشد.
+5. `/login?register=1` ثبت‌نام مشتری را انجام دهد.
+6. مشتری وارد `/account` شود.
+7. یک محصول به سبد اضافه و checkout شود.
+8. خروج مشتری و ورود مجدد کار کند.
+9. در حالت میهمان، محصول به سبد اضافه و سفارش ثبت شود.
+10. سفارش میهمان به `customer_id` متصل نشود ولی snapshot نام/موبایل/آدرس را داشته باشد.
+
+## محدودیت
+Render Free برای تست مناسب است. این بسته برای محیط production واقعی، درگاه بانکی واقعی را فعال نکرده و داده عملیاتی حساس نباید روی سرویس رایگان نگهداری شود.

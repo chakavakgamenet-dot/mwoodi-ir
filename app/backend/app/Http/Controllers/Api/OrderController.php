@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller {
+ private function normalizeDigits(string $value): string {
+  return strtr(trim($value), ['۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9']);
+ }
  public function index(Request $r){
   return Order::with('items')->where('customer_id',$r->user()->id)->latest()->paginate(20);
  }
@@ -35,6 +38,8 @@ class OrderController extends Controller {
 
   $u=$r->user();
   $isGuest=!$u;
+  if(isset($data['guest_phone'])) $data['guest_phone']=$this->normalizeDigits($data['guest_phone']);
+  $data['shipping_address']['recipient_phone']=$this->normalizeDigits($data['shipping_address']['recipient_phone']);
   if($isGuest && empty($data['items'])){
    return response()->json(['message'=>'برای خرید میهمان، اقلام سبد باید ارسال شوند.'],422);
   }
@@ -88,6 +93,10 @@ class OrderController extends Controller {
 
  public function guestLookup(Request $r){
   $data=$r->validate(['order_number'=>'required|string|max:32','phone'=>'required|string|max:30']);
-  return Order::with('items')->where('order_number',$data['order_number'])->where('customer_phone_snapshot',$data['phone'])->firstOrFail();
+  $phone=$this->normalizeDigits($data['phone']);
+  return Order::with('items')
+   ->where('order_number',$data['order_number'])
+   ->where('customer_phone_snapshot',$phone)
+   ->firstOrFail();
  }
 }

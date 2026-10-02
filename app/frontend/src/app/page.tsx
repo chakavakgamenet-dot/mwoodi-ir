@@ -30,24 +30,25 @@ function AuthBadge(){
 
 export default function Home(){
  const [products,setProducts]=useState<any[]>(fallback),[loading,setLoading]=useState(true),[q,setQ]=useState('');
+ const [settings,setSettings]=useState<any>({storefront:{},trust:{items:[]}});
  useEffect(()=>{
    api<any[]>('/products?all=1').then(d=>{
      const live=d.map((p:any)=>({...p,cat:p.category?.name||'محصول چوبی'}));
      if(live.length)setProducts(live);
-   }).finally(()=>setLoading(false));
+   }).catch(()=>{}); api<any>('/settings').then(st=>setSettings(st)).catch(()=>{}).finally(()=>setLoading(false));
  },[]);
  const shown=useMemo(()=>products.filter(p=>!q||String(p.name).includes(q)||String(p.category?.name||p.cat).includes(q)),[products,q]);
  return <main className="mw-home">
    <header className="storeHeader">
     <Link href="/" className="logo"><span className="mark">♨</span><span><b>Mwoodi</b><small>WOODEN ART FOR YOUR HOME</small></span></Link>
     <nav><Link href="/">خانه</Link><Link href="/products">فروشگاه</Link><a href="#cats">دسته‌بندی‌ها</a><a href="#about">درباره ما</a></nav>
-    <div className="headActions"><AuthBadge/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="جستجوی محصول..." /><Link href="/cart">🛒 سبد</Link><Link href="/login">ورود</Link><Link href="/login?register=1">ثبت‌نام</Link></div>
+    <div className="headActions"><AuthBadge/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="جستجوی محصول..." /><Link href="/cart">🛒 سبد</Link></div>
    </header>
 
    <section className="hero">
     <div className="heroCopy"><span className="eyebrow">MWOODI • NATURAL WOOD LIVING</span>
-     <h1>چوب را فقط نمی‌فروشیم؛ بخشی از حس خانه می‌کنیم.</h1>
-     <p>محصولات چوبی با بافت طبیعی و طراحی کاربردی؛ برای آشپزخانه، پذیرایی و گوشه‌های خاص خانه.</p>
+     <h1>{settings.storefront.hero_title||'چوب را فقط نمی‌فروشیم؛ بخشی از حس خانه می‌کنیم.'}</h1>
+     <p>{settings.storefront.hero_text||'محصولات چوبی با بافت طبیعی و طراحی کاربردی؛ برای آشپزخانه، پذیرایی و گوشه‌های خاص خانه.'}</p>
      <div className="actions"><Link href="/products" className="primary">دیدن مجموعه ←</Link><Link href="/login?guest=1" className="secondary">ادامه به‌عنوان میهمان</Link><a href="#cats" className="secondary">انتخاب دسته</a></div>
      <div className="stats"><span>🪵 چوب طبیعی</span><span>✋ پرداخت دست‌ساز</span><span>🏠 برای زندگی روزمره</span></div>
     </div>
@@ -64,7 +65,7 @@ export default function Home(){
     {loading?<div className="loading">در حال همگام‌سازی با فروشگاه…</div>:<div className="products">{shown.slice(0,8).map((p:any,i:number)=><article className="product" key={p.id}><div className="productImage"><img src={p.images?.[0]?.url||photos[i%photos.length]}/></div><span>{p.category?.name||p.cat}</span><h3>{p.name}</h3><strong>{money(p.price)}</strong><Link href={'/products/'+p.slug} className="productBtn">مشاهده محصول</Link></article>)}</div>}
    </section>
 
-   <section id="about" className="about"><div><span className="eyebrow">ABOUT MWOODI</span><h2>یک فروشگاه نیست؛ یک کارگاه است.</h2><p>سادگی، بافت طبیعی و طراحی کاربردی؛ محصولاتی برای خانه‌های گرم و امروزی.</p></div><div className="trust"><div>🪵<b>کیفیت چوب</b><small>انتخاب‌شده با وسواس</small></div><div>💬<b>پشتیبانی</b><small>قبل و بعد از خرید</small></div><div>📦<b>ارسال مطمئن</b><small>بسته‌بندی مناسب</small></div></div></section>
+   <section id="about" className="about"><div><span className="eyebrow">ABOUT MWOODI</span><h2>{settings.storefront.about_title||'یک فروشگاه نیست؛ یک کارگاه است.'}</h2><p>{settings.storefront.about_text||'سادگی، بافت طبیعی و طراحی کاربردی؛ محصولاتی برای خانه‌های گرم و امروزی.'}</p><p>{settings.storefront.address&&<>📍 {settings.storefront.address}<br/></>}{settings.storefront.contact&&<>☎ {settings.storefront.contact}</>}</p></div><div className="trust"><div>🪵<b>کیفیت چوب</b><small>انتخاب‌شده با وسواس</small></div><div>💬<b>پشتیبانی</b><small>قبل و بعد از خرید</small></div><div>📦<b>ارسال مطمئن</b><small>بسته‌بندی مناسب</small></div></div></section>
    <footer>Mwoodi · Wooden Art for Your Home · © 2026</footer>
  </main>;
 }

@@ -23,6 +23,7 @@ Route::prefix('v1')->group(function () {
  Route::middleware('auth:sanctum')->group(function(){
   Route::post('/auth/logout',[AuthController::class,'logout']);
   Route::get('/auth/me',[AuthController::class,'me']);
+  Route::patch('/auth/profile',[AuthController::class,'updateProfile']);
   Route::get('/cart',[CartController::class,'show']);
   Route::post('/cart/items',[CartController::class,'store']);
   Route::patch('/cart/items/{product:id}',[CartController::class,'update']);
@@ -34,6 +35,10 @@ Route::prefix('v1')->group(function () {
    Route::get('/orders',[AdminController::class,'orders']);
    Route::get('/products',[AdminController::class,'products']);
    Route::patch('/products/{product:id}',[AdminController::class,'updateProduct']);
+   Route::get('/customers',[AdminController::class,'customers']);
+   Route::patch('/customers/{customer:id}',[AdminController::class,'updateCustomer']);
+   Route::get('/settings',[AdminController::class,'settings']);
+   Route::put('/settings',[AdminController::class,'updateSettings']);
   });
  });
 });
